@@ -1,0 +1,137 @@
+.spinner {
+    line-height: 24px;
+    color: rgb(183, 72, 86);
+}
+
+.spinner img {
+    margin: 0;
+    height: 24px;
+    vertical-align: middle;
+}
+#crefs-content-wrap {
+    margin-top: 20px;
+}
+
+#crefs-content-wrap label {
+    display: inline-block;
+    line-height:  1;
+    cursor: pointer;
+}
+
+#enable_commentrefs {
+    float:  left;
+}
+
+#crefs-content-wrap #enable_commentrefs {
+    display:  block;
+    width: 1.5em;
+    margin:  0;
+    line-height:  1;
+}
+
+#crefs-item-list {
+    margin: 0;
+    color: rgb(131, 0, 0);
+    padding: 10px 20px;
+    list-style:  none;
+    background:  rgba(247, 190, 152, 0.2);
+}
+
+.crefs-item {
+    padding: 5px 3px;
+    border-bottom: 1px dashed rgba(233, 104, 104, 0.5);
+}
+
+.crefs-item.selected,
+#crefs-item-list.selected {
+    border:  none;
+    background:  none;
+}
+
+.crefs-item a {
+    color: rgb(131, 0, 0);
+    text-decoration: none;
+    transition: fade 3000ms;
+}
+
+.crefs-item a:hover {
+    text-decoration: none;
+}
+
+.crefs-item.inactive a {
+    color:  rgb(204, 204, 204);
+}
+
+.crefs-item .crefs-share-wrap a {
+    color:  rgba(255, 255, 255, 1);
+    filter: blur(0);
+}
+
+.crefs-share-btn {
+    padding: 3px 5px;
+    border-radius: 3px;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.75em !important;
+    color: rgb(255, 255, 255) !important;
+    border: 1px solid rgb(238, 238, 238);
+}
+
+.btn-facebook {
+    background: rgb(72, 115, 171);
+}
+
+.btn-twitter {
+    background: rgb(69, 175, 243);
+}
+
+.btn-google {
+    background:  rgb(222, 73, 57);
+}
+
+.btn-linkedin {
+    background: rgb(0, 135, 178);
+}
+
+.crefs-share-btn:hover {
+    color: rgb(255, 255, 255);
+    font-weight: 600;
+    transition: font-weight 250ms;
+}
+
+.crefs-share-btn img {
+    margin-right: 3px;
+    vertical-align:  text-bottom;
+}
+
+.crefs-shares {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.crefs-link-wrap,
+.crefs-link-wrap a {
+    font-size: .9em;
+}
+
+#crefs-messages-wrap ul {
+    margin-left:  1em;
+}
+
+.crefs-message {
+    font-style:  italic;
+}
+
+.crefs-message a {
+    text-decoration:  none;
+}
+
+.crefs-error {
+    color: rgb(131, 0, 0);
+    display:  block;
+    background: rgba(255, 192, 203, 0.5);
+    padding:  0.5em 1em;
+    border-radius: 5px;
+    font-weight: 500;;
+}

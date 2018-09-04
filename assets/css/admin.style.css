@@ -1,0 +1,85 @@
+#commentrefs_settings {
+    margin-left: 3em;
+}
+#commentrefs_settings th,
+#commentrefs_settings input[type="checkbox"] {
+    display: none;
+}
+.block-options {
+    display:  block;
+    padding: 0.5em 0;
+}
+
+.inline-options {
+    margin-left:  1em;
+    margin-right: 1em;
+}
+
+.inline-options:first-child {
+    margin-left: 0;
+}
+
+.toggle-icon {
+    width: 3em;
+    height: 1.5em;
+    margin-right: 1em;
+    position: relative;
+/*    background:  #2196F3;*/
+    display: inline-block;
+    border-radius: 2.5em;
+    margin-bottom: -0.6em;
+    border: 0.2em solid #058ed0;
+}
+
+.ball-icon{
+    left: 1.6em;
+    width: 1.5em;
+    height: 1.5em;
+    border:  none;
+    display:  block;
+    background:  #006799;
+    position: absolute;
+    border-radius: 100%;
+    transition: left 120ms;
+}
+
+.toggle-icon.off {
+    background: #fff;
+    border-color: #72777c;
+}
+
+.toggle-icon.off .ball-icon {
+    left: -1px;
+    background:  #72777c;
+    transition: left 120ms;
+}
+
+.block-options {
+    display:  block;
+    padding: 0.5em 0;
+}
+
+.inline-option {
+    margin-left:  1em;
+}
+
+.crefs-option-title {
+    display:  block;
+    font-weight: 500;
+    margin: .5em 0;
+}
+
+.crefs-link-wrap {
+    display:  block;
+}
+
+.crefs-link-wrap br {
+    display: none;
+}
+
+.crefs-meta-content img {
+    height: 28px;
+    vertical-align: middle;
+    margin-top: -3px;
+    display: none;
+}

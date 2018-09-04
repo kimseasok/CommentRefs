@@ -1,0 +1,22 @@
+{
+    "name": "kimseasok/CommentRef",
+    "type": "plugin",
+    "license": "GPLv3",
+    "authors": [
+        {
+            "name": "Kimsea Sok",
+            "email": "basicblogtalk@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/kimseasok/CommentRefs"
+        }
+    ],
+    "require": {},
+	"autoload": {
+		"psr-4": {"Inc\\": "./inc"}
+	}
+}

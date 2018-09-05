@@ -4,14 +4,15 @@
 */
 
 namespace Inc\Base;
+
 use \Inc\Base\ControlerCrefs;
+use \Inc\Api\SanitizeApiCrefs;
     
 class CommentCrefs extends ControlerCrefs
 {
-    /*
-     * Register all services and hook in WordPress Filter and Action Hooks
-     */
     
+    // Register all services and hook in WordPress Filter and Action Hooks
+     
 	public function register(){
         
         /*
@@ -104,7 +105,9 @@ class CommentCrefs extends ControlerCrefs
     public function isUserCanGetDofollow ($comment_id) {
         
         $get_do = get_option('crefs_get_dofollow');
+        
         $comment_author_email = get_comment_author_email($comment_id);
+        
         $user = get_user_by('email', $comment_author_email);
         
         if (user_can($user, 'editable_roles')) {
@@ -126,7 +129,9 @@ class CommentCrefs extends ControlerCrefs
         } else if (isset($get_do['post_author']) && $get_do['post_author'] == 'on') {
             
             $author_id = get_post_field('post_author', get_the_ID());
+            
             $commentator = get_user_by('email', $comment_author_email);
+            
             $commentator_id = $commentator->ID;
             
             if($author_id == $commentator_id) {
@@ -140,10 +145,8 @@ class CommentCrefs extends ControlerCrefs
             $minimum_comments = $get_do['minimum_comments'];
             
             $comment_count = get_comments(array(
-                
                 'author_email'  =>  $comment_author_email,
                 'count'         => true,
-                
             ));
             
             if (!empty($minimum_comments) && $minimum_comments <= $comment_count) {
@@ -155,12 +158,14 @@ class CommentCrefs extends ControlerCrefs
         } else if (isset($get_do['shared_the_post']) && $get_do['shared_the_post'] == 'on') {
             
             $crefs_metas = get_comment_meta($comment_id, 'comment_refs_metas');
+            
             $shared_platform = (is_array($crefs_metas) && isset($crefs_metas[0]['shared_on'])) ? $crefs_metas[0]['shared_on'] : null;
             
             if(is_array($shared_platform) && !empty($shared_platform)) {
                 
                 return true;
             }
+            
         }
         
         return false;
@@ -172,7 +177,9 @@ class CommentCrefs extends ControlerCrefs
      */
     
     public function requireWordPressVersion() {
+        
         $require_wp_version = '3.5';
+        
         $current_wp_version = get_bloginfo('version');
         
         if(version_compare($current_wp_version, $require_wp_version) < 0) {
@@ -184,7 +191,9 @@ class CommentCrefs extends ControlerCrefs
             }
             
             deactivate_plugins('commentrefs/commentrefs.php', true);
+            
             add_action('admin_init', array($this, 'displaySupportWordPressVersionNotice'));
+            
         }
         
     }
@@ -217,11 +226,17 @@ class CommentCrefs extends ControlerCrefs
      */
     
     public function displaySupportWordPressVersionNotice() {
+        
     ?>
+
         <div class="error notice-error is-dismissible">
+            
             <p><?php _e( 'CommentRefs plugin requires at least WordPress version 3.5', 'commentrefs' ); ?></p>
+            
         </div>
+
     <?php
+        
     }
     
     /*
@@ -229,11 +244,17 @@ class CommentCrefs extends ControlerCrefs
      */
     
     public function displayCommentLuvNotice() {
+        
     ?>
+
         <div class="error notice-error is-dismissible">
+            
             <p><?php _e( 'To avaid conflig, you should disable CommentLuv plugin before activate CommentRefs', 'commentrefs' ); ?></p>
+            
         </div>
+
     <?php
+        
     }
     
     /*
@@ -241,18 +262,17 @@ class CommentCrefs extends ControlerCrefs
      * if CommentRefs checkbox is check and verify_once is true.
      */
     
-    public function addCommentMetas($comment_ID, $comment_approved) {
-        var_dump($_POST['enable_commentrefs']);
+    public function addCommentMetas($comment_ID, $comment_approved) {        
         
-        
-        if (!isset($_POST['enable_commentrefs'])) {
+        if (!isset($_POST['enable_commentrefs']) || !isset($_POST['comment_refs_metas'])) {
             
             return;
             
         }
         
-        $crefs_wpnone = (isset($_POST['comment_refs_wponce'])) ? $_POST['comment_refs_wponce'] : '';
-        $crefs_metas = (isset($_POST['comment_refs_metas'])) ? $_POST['comment_refs_metas'] : '';
+        $crefs_wpnone = (isset($_POST['comment_refs_wponce'])) ? sanitize_text_fields($_POST['comment_refs_wponce']) : '';
+        
+        $crefs_metas = (isset($_POST['comment_refs_metas'])) ? sanitize_meta('comment_refs_metas', $_POST['comment_refs_metas'], 'comment') : '';
         
         if(wp_verify_nonce($crefs_wpnone, 'CommentRefs') && $comment_approved !== 'spam') {
             
@@ -268,7 +288,11 @@ class CommentCrefs extends ControlerCrefs
     
     public function deleteCommentMetas($comment_ID){
         
-        $delete = delete_comment_meta($comment_ID, 'comment_refs_metas');
+        if (!empty($comment_ID)) {
+            
+            $delete = delete_comment_meta($comment_ID, 'comment_refs_metas');
+            
+        }
         
     }
     
@@ -279,30 +303,28 @@ class CommentCrefs extends ControlerCrefs
     
     public function redirectFirstComment($location, $commentdata) {
         
-        if(!isset($commentdata) && !empty($commentdata->comment_author_email)) {
+        if(!isset($commentdata) && !isset($commentdata->comment_author_email)) {
             
             return $location;
             
         };
         
-        $comment_redirect = get_option('crefs_comment_redirect');
+        $comment_redirect = get_option('crefs_comment_redirect') ? get_option('crefs_comment_redirect') : '';
         
         if (is_array($comment_redirect) && isset($comment_redirect['enabled'])) {
             
             if ($comment_redirect['enabled'] == 'on' && !empty($comment_redirect['redirect_to'])) {
                 
                 $comment_count = get_comments(array(
-                    
                     'author_email'  => $commentdata->comment_author_email,
                     'count'         => true,
                 ));
                 
-                if ($comment_count == 1) {    
+                if ($comment_count == 1) {
                     
-                    $redirect_to = $comment_redirect['redirect_to'];
+                    $redirect_to = esc_attr($comment_redirect['redirect_to']);
+                    
                     $location = get_page_link($redirect_to);
-                    
-                    return $location;
                     
                 }
                 
@@ -320,27 +342,23 @@ class CommentCrefs extends ControlerCrefs
     
     public function addCommentRefsLinks($comments) {
 
-        if (is_array($comments)) {
+        if (is_array($comments) && !empty($comments)) {
+            
+            $message = (get_option('crefs_post_type')) ? get_option('crefs_post_type') : '';
+            $message = (is_array($message) && isset($message['message'])) ? $this->getMessage($message['message']) : '';
             
             foreach($comments as $comment){
                 
-                $crefs_metas = get_comment_meta($comment->comment_ID, 'comment_refs_metas');
-                $message = get_option('crefs_post_type');
+                $crefs_metas = (get_comment_meta($comment->comment_ID, 'comment_refs_metas')) ? get_comment_meta($comment->comment_ID, 'comment_refs_metas') : '';
+                $crefs_metas = (is_array($crefs_metas[0]) && !empty($crefs_metas[0])) ? $crefs_metas[0] : '';
                 
-                if (is_array($message) && isset($message['message'])) {
-                    
-                    $message = $this->getMessage($message['message']);
-                    
-                }
-                
-                $crefs_metas = (!empty($crefs_metas[0]) && is_array($crefs_metas[0])) ? $crefs_metas[0] : null;
                 $link_rel = ($this->isUserCanGetDofollow($comment->comment_ID)) ? '' : 'rel="nofollow"';
                 
                 if(!empty($crefs_metas)) {   
                     
-                    $link = '<p id="crefs-comment-' .$comment->comment_ID . '" class="crefs-link-wrap">
-                    <span class="crefs-message">' .$comment->comment_author .' ' .$message .' </span><span><a href="' .$crefs_metas['url'] .'" title="' .$crefs_metas['title'] . '" ' .$link_rel .' data-comment-id="comment-' . $comment->comment_ID . '">' .strtolower($crefs_metas['title']) . '</a></span></p>';
-                    $comment->comment_content .= $link;
+                    $link = '<p id="crefs-comment-' .esc_attr($comment->comment_ID) . '" class="crefs-link-wrap"><span class="crefs-message">' .esc_html($comment->comment_author) .' ' .esc_html($message) .'</span><span class="crefs-meta-content"><a href="' .esc_url($crefs_metas['url']) .'" title="' .esc_attr($crefs_metas['title']) . '" ' .$link_rel .' data-comment-id="comment-' . $comment->comment_ID . '">' .esc_html(strtolower($crefs_metas['title'])) . '</a></span></p>';
+                    
+                    $comment->comment_content .= trim($link);
                 }
                 
             }
@@ -349,34 +367,23 @@ class CommentCrefs extends ControlerCrefs
             
             if (is_admin()) {
     
-                $crefs_metas = get_comment_meta(get_comment_ID(), 'comment_refs_metas');
-                $crefs_metas = (!empty($crefs_metas[0]) && is_array($crefs_metas[0])) ? $crefs_metas[0] : null;
-                
-                $message = get_option('crefs_post_type');
-                
-                if (is_array($message) && isset($message['message'])) {
-                    
-                    $message = $this->getMessage($message['message']);
-                    
-                }
+                $crefs_metas = (get_comment_meta(get_comment_ID(), 'comment_refs_metas')) ? get_comment_meta(get_comment_ID(), 'comment_refs_metas') : '';
+                $crefs_metas = (is_array($crefs_metas[0]) && !empty($crefs_metas[0])) ? $crefs_metas[0] : '';
                 
                 if(!empty($crefs_metas)) { 
                     
-                    $link = '<p id="crefs-comment-' .get_comment_ID() .'" class="crefs-link-wrap">
-                        <span class="crefs-mata-title">' .get_comment_author() .$message .' </span>
-                        <span class="crefs-meta-content">
-                            <a id="comment-link-id-' . get_comment_ID() . '" href="' .$crefs_metas['url'] .'" title="' .$crefs_metas['title'] . '">' .$crefs_metas['title'] . '</a>
-                            <img id="comment-loading-id-' .get_comment_ID() .'" src="' . $this->plugin_url .'/assets/images/loading-bar-64px.gif' . '">
-                        </span>
-                    </p>';
+                    $link = '<p id="crefs-comment-' .esc_attr(get_comment_ID()) .'" class="crefs-link-wrap"><span class="crefs-mata-title">' .esc_html(get_comment_author()) .esc_html($message) .' </span><span class="crefs-meta-content"><a id="comment-link-id-' .esc_attr(get_comment_ID()) . '" href="' .esc_url($crefs_metas['url']) .'" title="' .esc_attr($crefs_metas['title']) . '">' .esc_html($crefs_metas['title']) . '</a><img id="comment-loading-id-' .esc_attr(get_comment_ID()) .'" src="' .esc_url($this->plugin_url .'/assets/images/loading-bar-64px.gif') . '"></span></p>';
+
+                    $comments .= trim($link);
                     
-                    $comments .= trim($link, "\n");
-                    
-                }   
+                }
+                
             }
+            
         }
         
         return $comments;
+        
     }
     
     
@@ -388,12 +395,13 @@ class CommentCrefs extends ControlerCrefs
         
         if(current_user_can('edit_post', $comment->comment_post_ID)) {
             
-            $comment_refs_meta = get_comment_meta($comment->comment_ID, 'comment_refs_metas');
+            $comment_refs_meta = (get_comment_meta($comment->comment_ID, 'comment_refs_metas')) ? get_comment_meta($comment->comment_ID, 'comment_refs_metas') : '';
             
             if(!empty($comment_refs_meta)){
                 
                 $nonce = wp_create_nonce('RemoveCommentRefs' .$comment->comment_ID);
-                $actions['remove_refs'] = '<a href="#" class="crefs_remove_link" data-comment-id="' .$comment->comment_ID .'" data-nonce="' .$nonce .'">Remove Refs</a>';
+                
+                $actions['remove_refs'] = '<a href="#" class="crefs_remove_link" data-comment-id="' .esc_attr($comment->comment_ID) .'" data-nonce="' .esc_attr($nonce) .'">Remove Refs</a>';
             
             }
             
@@ -409,10 +417,11 @@ class CommentCrefs extends ControlerCrefs
     
     public function handleRemoveCommentAjaxAction () {
         
-        $nonce = (isset($_POST['nonce'])) ? $_POST['nonce'] : '';
-        $comment_id = (isset($_POST['comment_id'])) ? $_POST['comment_id'] : '';
+        $nonce = (isset($_POST['nonce'])) ? sanitize_text_fields($_POST['nonce']) : '';
         
-        if (wp_verify_nonce($nonce, 'RemoveCommentRefs' .$comment_id)) {
+        $comment_id = (isset($_POST['comment_id'])) ? sanitize_text_fields($_POST['comment_id']) : '';
+        
+        if (wp_verify_nonce($nonce, 'RemoveCommentRefs' .$comment_id) && !empty($comment_id)) {
             
             $deleted = delete_comment_meta($comment_id, 'comment_refs_metas');
             
@@ -446,8 +455,9 @@ class CommentCrefs extends ControlerCrefs
     
     public function handleGetCommentCount() {
         
-        $author_email = (isset($_GET['author_email'])) ? $_GET['author_email'] : '';
-        $wp_nonce = (isset($_GET['wp_nonce'])) ? $_GET['wp_nonce'] : '';
+        $author_email = (isset($_GET['author_email'])) ? sanitize_email($_GET['author_email']) : '';
+        
+        $wp_nonce = (isset($_GET['wp_nonce'])) ? sanitize_text_fields($_GET['wp_nonce']) : '';
             
         if (!empty($author_email) && !empty($wp_nonce)) {
             
@@ -461,7 +471,9 @@ class CommentCrefs extends ControlerCrefs
                 $comments = get_comments($args);
                 
                 if (!empty($comments)) {
+                    
                     wp_send_json_success(array('previus_comments' => $comments));
+                    
                 }
                 
             }
@@ -469,6 +481,7 @@ class CommentCrefs extends ControlerCrefs
         } else {
             
             wp_send_json_error();
+            
         }
         
         wp_die();
@@ -480,11 +493,15 @@ class CommentCrefs extends ControlerCrefs
      */
     public function filterLowQualityComment ($comment) {
     
-        $options = get_option('crefs_prevent_lq');
-        $prevent_link_in_comment = isset($options['prevent_link_in_comment']) ? $options['prevent_link_in_comment'] : '';
-        $prevent_short_comment = isset($options['prevent_short_comment']) ? $options['prevent_short_comment'] : '';
+        $options = (get_option('crefs_prevent_lq')) ? get_option('crefs_prevent_lq') : '';
         
-        if (is_array($options) && $prevent_link_in_comment == 'on') {
+        $prevent_link_in_comment = (is_array($options) && isset($options['prevent_link_in_comment'])) ? $options['prevent_link_in_comment'] : '';
+
+        $prevent_short_comment = (is_array($options) && isset($options['prevent_short_comment'])) ? $options['prevent_short_comment'] : '';
+        
+        $minimum_comment_length = (is_array($options) && isset($options['minimum_length'])) ? $options['minimum_length'] : '';
+        
+        if ($prevent_link_in_comment == 'on') {
             
             $re = '/<a.+>/m';
             $str = $comment;
@@ -499,11 +516,11 @@ class CommentCrefs extends ControlerCrefs
             
         }
         
-        if (is_array($options) && $prevent_short_comment == 'on') {
+        if ($prevent_short_comment == 'on') {
             
             $comment_count = str_word_count($comment);
             
-            if(isset($options['minimum_length'])) {
+            if(!empty($options['minimum_length'])) {
                 
                 $minimum_length = absint($options['minimum_length']);
                 
@@ -535,21 +552,24 @@ class CommentCrefs extends ControlerCrefs
 
                 foreach ($comments as $comment) {
 
-                    $commentluv_data = get_comment_meta($comment->comment_ID, 'cl_data');
-
-                    $commentrefs_data['title']  = $commentluv_data[0]['cl_post_title'];
-                    $commentrefs_data['url']    = $commentluv_data[0]['cl_post_url'];
-
-                    $commentrefs_meta = add_comment_meta($comment->comment_ID, 'comment_refs_metas', $commentrefs_data, true);
-
-                    if ($commentrefs_meta) {
-
-                        $delete = delete_comment_meta($comment->comment_ID, 'cl_data');
+                    $commentluv_data = (get_comment_meta($comment->comment_ID, 'cl_data')) ? get_comment_meta($comment->comment_ID, 'cl_data') : '';
+                    
+                    if (is_array($commentluv_data) && !empty($commentluv_data)) {
+                        
+                        $commentrefs_data['title']  = isset($commentluv_data[0]['cl_post_title']) ? $commentluv_data[0]['cl_post_title'] : '';
+                        $commentrefs_data['url']    = ($commentluv_data[0]['cl_post_url']) ? $commentluv_data[0]['cl_post_url'] : '';
+                        
+                        $commentrefs_data = sanitize_meta('comment_refs_metas', $commentrefs_data, 'comment');
+                        
+                        $commentrefs_meta = add_comment_meta($comment->comment_ID, 'comment_refs_metas', $commentrefs_data, true);
+                        
                     }
 
                 }
 
                 $value['imported'] = true;
+                $value = sanitize_option($option, $value);
+                
                 update_option($option, $value);
 
             }

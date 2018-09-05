@@ -41,7 +41,7 @@ class EnqueueCrefs extends ControlerCrefs
         $user = get_current_user_id();
         $user_email = get_the_author_meta('email', $user);
         $miscellaneous = get_option('crefs_miscellaneous');
-        $credited = (is_array($miscellaneous) && $miscellaneous['credit_CommentRefs'] == 'on') ? true : false;
+        $credited = (is_array($miscellaneous) && isset($miscellaneous['credit_CommentRefs']) && $miscellaneous['credit_CommentRefs'] == 'on') ? true : false;
         
         $settings['plugin_url'] =   $this->plugin_url;
         $settings['title']      =   get_the_title(get_the_ID());

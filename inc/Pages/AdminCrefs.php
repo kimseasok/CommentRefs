@@ -51,7 +51,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_post_type',
-                //'callback'      => array($this->callbacks, 'settingsCallback'),
+                'callback'      => 'sanitize_text_fields',
                 
             ),
             
@@ -59,7 +59,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_get_ten_posts',
-                //'callback'      => array($this->callbacks, 'settingsCallback'),
+                'callback'      => 'sanitize_text_fields',
                 
             ),
             
@@ -67,7 +67,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_get_dofollow',
-                //'callback'      => array($this->callbacks, 'settingsCallback'),
+                'callback'      => 'sanitize_text_fields',
                 
             ),
             
@@ -75,14 +75,14 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_sm_integration',
-                //'callback'      => array($this->callbacks, 'settingsCallback'),
+                'callback'      => 'sanitize_text_fields',
                 
             ),
             
             array(
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_comment_redirect',
-                //'callback'      => array($this->callbacks, 'settingsCallback'),
+                'callback'      => 'sanitize_text_fields',
                 
             ),
             
@@ -90,7 +90,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_prevent_lq',
-                //'callback'      => array($this->callbacks, 'settingsCallback'),
+                'callback'      => 'sanitize_text_fields',
                 
             ),
             
@@ -98,7 +98,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_miscellaneous',
-                //'callback'      => array($this->callbacks, 'settingsCallback'),
+                'callback'      => 'sanitize_text_fields',
                 
             ),
             

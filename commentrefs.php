@@ -32,10 +32,12 @@ Copyright 2005-2015 Automattic, Inc.
 */
 
 // Make sure we don't expose any info if called directly
-defined('ABSPATH') or die('Hey, selly human!... You\'re accessing none existing page');
+
+defined ('ABSPATH') or die ('Hey, selly human!... You\'re accessing none existing page');
 
 //Require once the Composer Autoload
-if(file_exists(dirname(__FILE__).'/vendor/autoload.php')){
+
+if (file_exists(dirname(__FILE__).'/vendor/autoload.php')) {
     
 	require_once dirname(__FILE__).'/vendor/autoload.php';
     
@@ -44,6 +46,7 @@ if(file_exists(dirname(__FILE__).'/vendor/autoload.php')){
 
 
 //Register activation and deactivation hooks
+
 register_activation_hook(__FILE__, 'activate_crefs');
 register_deactivation_hook(__FILE__, 'deactivate_crefs');
 
@@ -60,6 +63,7 @@ function deactivate_crefs(){
 }
 
 //Initialize all the core classes of the plugin
+
 if(class_exists('Inc\\InitCrefs')){
     
 	Inc\InitCrefs::register_services();

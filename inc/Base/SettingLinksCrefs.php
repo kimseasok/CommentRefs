@@ -7,7 +7,8 @@ namespace Inc\Base;
 use \Inc\Base\ControlerCrefs;
 
 class SettingLinksCrefs extends ControlerCrefs
-{	
+{
+    
 	public function register(){
         
 		add_filter("plugin_action_links_{$this->plugin}", array($this, 'setting_links'));

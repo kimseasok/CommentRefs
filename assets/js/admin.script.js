@@ -8,22 +8,22 @@
     
     function toggleClick(e) {
         
-        var btn, btnId, checkbox, isOff;
+        var btn, btnId, checkbox, is_off;
         
         btn = e.currentTarget;
         btnId = btn.getAttribute('data-id');
         checkbox = document.getElementById(btnId);
-        isOff = btn.classList.contains('off');
-        
-        if (isOff) {
+        is_off = btn.classList.contains('off');
+
+        if (is_off === true) {
             
             btn.classList.remove('off');
-            checkbox.checked;
+            checkbox.checked = true;
             
         } else {
             
             btn.classList.add('off');
-            checkbox.checked;
+            checkbox.checked = false;
             
         }
         

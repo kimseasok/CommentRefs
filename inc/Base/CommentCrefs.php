@@ -15,73 +15,140 @@ class CommentCrefs extends ControlerCrefs
      
 	public function register(){
         
-        /*
-         * Disable CommentRef plugin when unsported WordPress version
-         * or when conflict with CommentLuv plugin
+        /**
+         * Check for compatible WordPress version, and
+         * Disable CommentRefs plugin if WordPress version is lower than 3.5
+         *
+         * @since 1.0.0
+         *
          */
         
-        add_action('admin_init', array($this, 'requireWordPressVersion'));
+        add_action('admin_init', array($this, 'unsupportedWordPressVersion'));
+        
+        /**
+         * Disable CommentRef plugin if CommentLuv was ready installed
+         *
+         * @since 1.0.0
+         *
+         */        
+        
         add_action('admin_init', array($this, 'commentluvReadyInstalled'));
         
-        /*
-         * Add CommentRefs metas data when comment post.
-         */
+        /**
+         * Add CommentRefs metas data when user post a comments
+         *
+         * @since 1.0.0
+         *
+         * Param WP_Comment $comment_ID 
+         * Param WP_Comment $comment_approved
+         */  
         
         add_action('comment_post', array($this, 'addCommentMetas'), 10, 2);
         
-        /*
-         * Delete CommentRefs meta data when delete comment from database
-         */
+        /**
+         * Delete CommentRefs associated metas data from database when user delete comment
+         *
+         * @since 1.0.0
+         *
+         * Param WP_Comment $comment_ID 
+         *
+         */ 
         
         add_action('delete_comment', array($this, 'deleteCommentMetas'), 10, 1);
         
-        /*
-         * Redirect the first commentator to a specific page or custom url
-         */
+        /**
+         * Delete CommentRefs associated metas data from database when user delete comment
+         *
+         * @since 1.0.0
+         *
+         * Param    String      $location       String URL for redirect location
+         * Param    WP_Comment  $commentdata    Comment object
+         *
+         */ 
         
         add_filter('comment_post_redirect', array($this, 'redirectFirstComment'), 10, 2);
         
-        /*
-         * Add CommentRefs link to each comment in front end 
-         * and comment page in admin dashboard
+        /**
+         * Generate HTML template for CommentRefs data and add it underneath comment
+         *
+         * @since 1.0.0
+         *
+         * Param    WP_Comment  $comments    Comment object
+         * Return   WP_Comment  $comments    Comment object
          */
         
         add_filter('comments_array', array($this, 'addCommentRefsLinks'), 10, 1);
         add_filter('comment_text', array($this, 'addCommentRefsLinks'), 10, 1);
         
-        /*
-         * Add remove CommentRefs action link in comment page in admin dashbard
+        /**
+         * Add remove CommentRef action in comment page in admin area
+         *
+         * @since 1.0.0
+         *
+         * Param Array      $action     Array action links
+         * Param WP_Comment $comments   Comment object
+         * Retrun Array     $action     Array actions links
+         *
          */
         
         add_filter('comment_row_actions', array($this, 'addRemoveCommentActionLink'), 10, 2);
         
-        /*
-         * Register wp_ajax action and handle remove CommentRefs ajax
+        /**
+         * Handle Ajax remove CommentRefs metas data when user click on remove CommentRefs action link
+         *
+         * @since 1.0.0
+         *
          */
         
-        add_action('wp_ajax_crefs_remove_comment_refs', array($this, 'handleRemoveCommentAjaxAction'));
+        add_action('wp_ajax_crefs_remove_comment_refs', array($this, 'removeCommentRefsMetasAjax'));
         
-        /*
-         * Register wp_ajax to count comment for none login user.
+        /**
+         * Handle count comment ajax for none login user.
+         * Use for check if user can get 10 posts in front end
+         *
+         * @since 1.0.0
+         *
          */
         
         add_action('wp_ajax_nopriv_crefs_get_comment_count', array($this, 'handleGetCommentCount'));
         
-        /*
-         * Hook in pre_comment_content to filter low quality comment
+        /**
+         * Check if the comment contain link or less words.
+         * If so, call wp_die().
+         *
+         * @since 1.0.0
+         *
+         * Param    WP_Comment  $comments    Comment object
+         * Return   WP_Comment  $comments    return comment object when successful
+         *
          */
+        
         add_filter('pre_comment_content', array($this, 'filterLowQualityComment'), 10, 1);
         
-        /*
-         * Import CommentLuv data and delete the data after import.
+        /**
+         * Import CommentLuv metas data when the setting is turned on.
+         *
+         * @since 1.0.0
+         *
+         * Param mix $old_value Old option.
+         * Param mix $value     New option
+         * Param string $option Option name
+         *
          */
         
         add_action('update_option_crefs_miscellaneous', array($this, 'importCommentLuvData'), 10, 3);
         
 	}
     
-    /*
-     * Helper function for generate replace message
+    /**
+     * Helper method for generate custom message
+     * Get replacable message and return string format
+     *
+     * @since 1.0.0
+     *
+     * Param string $message string message.
+     * Return string $message
+     *
      */
     
     public function getMessage($message) {
@@ -98,8 +165,15 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    /*
-     * Helper function for checking if the commentator can get dofollow attribute
+    /**
+     * Helper method for generate custom message
+     * Get replacable message and return string format
+     *
+     * @since 1.0.0
+     *
+     * Param string $comment_id string comment ID.
+     * Return boolean
+     *
      */
     
     public function isUserCanGetDofollow ($comment_id) {
@@ -171,12 +245,8 @@ class CommentCrefs extends ControlerCrefs
         return false;
     }
     
-    /*
-     * Compare WordPress version and disable CommentRefs if lower than version 3.5
-     * Hook in admin_noticews to display unupported message in admin area
-     */
-    
-    public function requireWordPressVersion() {
+    // Compare current WordPress version with require version (3.5).
+    public function unsupportedWordPressVersion() {
         
         $require_wp_version = '3.5';
         
@@ -184,48 +254,46 @@ class CommentCrefs extends ControlerCrefs
         
         if(version_compare($current_wp_version, $require_wp_version) < 0) {
             
+            // require plugin.php if deactivate_plugin not exists.
             if (!function_exists('deactivate_plugins')) {
                 
                 require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
                 
             }
             
+            // Deactive CommentRefs plugin.
             deactivate_plugins('commentrefs/commentrefs.php', true);
             
-            add_action('admin_init', array($this, 'displaySupportWordPressVersionNotice'));
+            // Display error message for unsupported WordPress version
+            add_action('admin_init', array($this, 'displayUnsupportedWordPressVersion'));
             
         }
         
     }
     
-    /*
-     * Disable CommentRefs if CommentLuv plugin was ready installed.
-     * Hook in admin_notices to display message.
-     */
-    
+    // Deactive CommentRefs plugin is CommentLuv is active
     public function commentluvReadyInstalled() {
         
+        // require plugin.php if deactivate_plugin not exists
         if(!function_exists('deactivate_plugins')) {
             
             require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
             
         }
         
+        // Deactive CommentRefs plugin if CommentLuv is active
         if (is_plugin_active('commentluv/commentluv.php')) {
             
             deactivate_plugins('commentrefs/commentrefs.php', true);
             
-            add_action('admin_notices', array($this, 'displayCommentLuvNotice'));
+            add_action('admin_notices', array($this, 'displayCommentLuvReadyInstalled'));
             
         }
         
     }
     
-    /*
-     * Generate error message for unsupported WordPress version
-     */
-    
-    public function displaySupportWordPressVersionNotice() {
+    // Generate error message for unsupported WordVersion
+    public function displayUnsupportedWordPressVersion() {
         
     ?>
 
@@ -239,11 +307,8 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    /*
-     * Generate error message for CommentLuv was ready installed
-     */
-    
-    public function displayCommentLuvNotice() {
+    //Generate error message for CommentLuv plugin was ready installed
+    public function displayCommentLuvReadyInstalled() {
         
     ?>
 
@@ -257,11 +322,7 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    /*
-     * Add CommentRefs metas data to the database
-     * if CommentRefs checkbox is check and verify_once is true.
-     */
-    
+    //Add CommentRefs metas data to the database when user post a comment.
     public function addCommentMetas($comment_ID, $comment_approved) {        
         
         if (!isset($_POST['enable_commentrefs']) || !isset($_POST['comment_refs_metas'])) {
@@ -274,6 +335,7 @@ class CommentCrefs extends ControlerCrefs
         
         $crefs_metas = (isset($_POST['comment_refs_metas'])) ? sanitize_meta('comment_refs_metas', $_POST['comment_refs_metas'], 'comment') : '';
         
+        // Add CommentRefs meta data if verify_nonce is true and comment is not spam.
         if(wp_verify_nonce($crefs_wpnone, 'CommentRefs') && $comment_approved !== 'spam') {
             
             $added_comment = add_comment_meta($comment_ID, 'comment_refs_metas', $crefs_metas);
@@ -282,10 +344,7 @@ class CommentCrefs extends ControlerCrefs
 
     }
     
-    /*
-     * Remove CommentRefs meta data when the comment was delete from database
-     */
-    
+    //Delete CommentRefs meta data from database when user delete comment
     public function deleteCommentMetas($comment_ID){
         
         if (!empty($comment_ID)) {
@@ -296,11 +355,7 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    /*
-     * Count comments of the commentator and redirect the commentator
-     * when having no more than one comment
-     */
-    
+    // Redirect the first commentator to custom page or URL.
     public function redirectFirstComment($location, $commentdata) {
         
         if(!isset($commentdata) && !isset($commentdata->comment_author_email)) {
@@ -309,51 +364,63 @@ class CommentCrefs extends ControlerCrefs
             
         };
         
+        //get setting options from CommentRefs setting.
         $comment_redirect = get_option('crefs_comment_redirect') ? get_option('crefs_comment_redirect') : '';
+        
         
         if (is_array($comment_redirect) && isset($comment_redirect['enabled'])) {
             
             if ($comment_redirect['enabled'] == 'on' && !empty($comment_redirect['redirect_to'])) {
                 
+                //Count user comments base on provided email.
                 $comment_count = get_comments(array(
                     'author_email'  => $commentdata->comment_author_email,
                     'count'         => true,
                 ));
                 
+                // Redirect commentator to custom page if has no more than 1 comment
                 if ($comment_count == 1) {
                     
-                    $redirect_to = esc_attr($comment_redirect['redirect_to']);
+                    $redirect_to = absint($comment_redirect['redirect_to']);
                     
-                    $location = get_page_link($redirect_to);
+                    $location = esc_attr(get_page_link($redirect_to));
                     
                 }
                 
+                //Check if custom URL is set, override redirect location.
+                if ($comment_redirect['enabled'] == 'on' && !empty($comment_redirect['custom_url'])) {
+                    
+                    $location = esc_attr($comment_redirect['custom_url']);
+                }
+                
             }
-            
+             
         }
         
         return $location;
     }
     
-    /*
-     * Generate CommentRefs link and add it underneath comment data
-     * in both front end and admin area
-     */
-    
+    //Generate HTML template and add CommentRef link underneath comment data
     public function addCommentRefsLinks($comments) {
-
+        
+        //Make comments object is not empty
         if (is_array($comments) && !empty($comments)) {
             
+            //Get replacable message from CommentRefs setting
             $message = (get_option('crefs_post_type')) ? get_option('crefs_post_type') : '';
             $message = (is_array($message) && isset($message['message'])) ? $this->getMessage($message['message']) : '';
             
+            //Loop in comments object and generate HTML template for CommentRefs
             foreach($comments as $comment){
                 
+                //Get CommentRefs metas data base on Comment id
                 $crefs_metas = (get_comment_meta($comment->comment_ID, 'comment_refs_metas')) ? get_comment_meta($comment->comment_ID, 'comment_refs_metas') : '';
                 $crefs_metas = (is_array($crefs_metas[0]) && !empty($crefs_metas[0])) ? $crefs_metas[0] : '';
                 
+                //Generate nofollow link related if the commentator cannot get dofollow
                 $link_rel = ($this->isUserCanGetDofollow($comment->comment_ID)) ? '' : 'rel="nofollow"';
                 
+                //Generate HTML template for CommentRefs and append to comment data
                 if(!empty($crefs_metas)) {   
                     
                     $link = '<p id="crefs-comment-' .esc_attr($comment->comment_ID) . '" class="crefs-link-wrap"><span class="crefs-message">' .esc_html($comment->comment_author) .' ' .esc_html($message) .'</span><span class="crefs-meta-content"><a href="' .esc_url($crefs_metas['url']) .'" title="' .esc_attr($crefs_metas['title']) . '" ' .$link_rel .' data-comment-id="comment-' . $comment->comment_ID . '">' .esc_html(strtolower($crefs_metas['title'])) . '</a></span></p>';
@@ -365,11 +432,14 @@ class CommentCrefs extends ControlerCrefs
             
         } else {
             
+            //Check if in the comment page in admin area
             if (is_admin()) {
-    
+                
+                //Get CommentRefs meta data base on the comment id
                 $crefs_metas = (get_comment_meta(get_comment_ID(), 'comment_refs_metas')) ? get_comment_meta(get_comment_ID(), 'comment_refs_metas') : '';
                 $crefs_metas = (is_array($crefs_metas[0]) && !empty($crefs_metas[0])) ? $crefs_metas[0] : '';
                 
+                // Generate HTML template and append to comment data if any
                 if(!empty($crefs_metas)) { 
                     
                     $link = '<p id="crefs-comment-' .esc_attr(get_comment_ID()) .'" class="crefs-link-wrap"><span class="crefs-mata-title">' .esc_html(get_comment_author()) .esc_html($message) .' </span><span class="crefs-meta-content"><a id="comment-link-id-' .esc_attr(get_comment_ID()) . '" href="' .esc_url($crefs_metas['url']) .'" title="' .esc_attr($crefs_metas['title']) . '">' .esc_html($crefs_metas['title']) . '</a><img id="comment-loading-id-' .esc_attr(get_comment_ID()) .'" src="' .esc_url($this->plugin_url .'/assets/images/loading-bar-64px.gif') . '"></span></p>';
@@ -386,14 +456,11 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    
-    /*
-     * Generate remove CommentRefs action link
-     * and add it to comment action links
-     */
+    //Generate HTML template for remove CommentRefs and add to Comment action links
     public function addRemoveCommentActionLink ($actions, $comment) {
         
-        if(current_user_can('edit_post', $comment->comment_post_ID)) {
+        //Add remove CommentRefs action link if you can delete comment post
+        if(current_user_can('delete_post', $comment->comment_post_ID)) {
             
             $comment_refs_meta = (get_comment_meta($comment->comment_ID, 'comment_refs_metas')) ? get_comment_meta($comment->comment_ID, 'comment_refs_metas') : '';
             
@@ -411,20 +478,19 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    /*
-     * Handle remove CommentRefs ajax request when verify_once is true
-     */
-    
-    public function handleRemoveCommentAjaxAction () {
+    //Handle remove comment link Ajax when user click on Remove CommentRefs action link
+    public function removeCommentRefsMetasAjax () {
         
         $nonce = (isset($_POST['nonce'])) ? sanitize_text_fields($_POST['nonce']) : '';
         
         $comment_id = (isset($_POST['comment_id'])) ? sanitize_text_fields($_POST['comment_id']) : '';
         
+        // Make sure verify_nonce is true
         if (wp_verify_nonce($nonce, 'RemoveCommentRefs' .$comment_id) && !empty($comment_id)) {
             
             $deleted = delete_comment_meta($comment_id, 'comment_refs_metas');
             
+            //Send json data if fail or success.
             if ($deleted) {
                 
                 $comment = array(
@@ -453,14 +519,17 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
+    //Handle ajax get comment count action.
     public function handleGetCommentCount() {
         
         $author_email = (isset($_GET['author_email'])) ? sanitize_email($_GET['author_email']) : '';
         
         $wp_nonce = (isset($_GET['wp_nonce'])) ? sanitize_text_fields($_GET['wp_nonce']) : '';
-            
+        
+        //Make sure comment author email and wp_nonce is not empty.
         if (!empty($author_email) && !empty($wp_nonce)) {
             
+            //check verify_nonce before processing query
             if (wp_verify_nonce($wp_nonce, 'CommentRefs')) {
                 
                 $args = array (
@@ -470,6 +539,7 @@ class CommentCrefs extends ControlerCrefs
                 
                 $comments = get_comments($args);
                 
+                //send json comment count if success
                 if (!empty($comments)) {
                     
                     wp_send_json_success(array('previus_comments' => $comments));
@@ -488,9 +558,7 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    /*
-     * Filter comment and die when contains links or low quality
-     */
+    //Filter low quality comment and call wp_die()
     public function filterLowQualityComment ($comment) {
     
         $options = (get_option('crefs_prevent_lq')) ? get_option('crefs_prevent_lq') : '';
@@ -501,13 +569,15 @@ class CommentCrefs extends ControlerCrefs
         
         $minimum_comment_length = (is_array($options) && isset($options['minimum_length'])) ? $options['minimum_length'] : '';
         
+        //check if prevent link in comment is turned on.
         if ($prevent_link_in_comment == 'on') {
             
             $re = '/<a.+>/m';
             $str = $comment;
 
             preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
-
+            
+            // call wp_die() when found link in comment
             if (!empty($matches)) {
 
                 wp_die(__('The comment did not pass quality filtering'));
@@ -516,6 +586,7 @@ class CommentCrefs extends ControlerCrefs
             
         }
         
+        //Check if prevent short comment is turned on.
         if ($prevent_short_comment == 'on') {
             
             $comment_count = str_word_count($comment);
@@ -524,6 +595,7 @@ class CommentCrefs extends ControlerCrefs
                 
                 $minimum_length = absint($options['minimum_length']);
                 
+                // call wp_die if the comment length is less than minimum comment length
                 if ($minimum_length > $comment_count) {
                     
                     wp_die(__('The comment did not pass the quality filtering'));
@@ -538,10 +610,7 @@ class CommentCrefs extends ControlerCrefs
         
     }
     
-    /*
-     * Import and delete CommentLuv meta data when setting changes.
-     */
-    
+    //Import CommentLuv metas data to CommentRefs plugin if setting option is set to on
     public function importCommentLuvData($old_value, $value, $option) {
         
         if ((isset($value['import_data_from_commentluv']) && $value['import_data_from_commentluv'] == 'on') && (!isset($value['imported']) || $value['imported'] != true)) {

@@ -2,6 +2,7 @@
 /*
  * @package CommentRefs
  */
+
 namespace Inc\Pages;
 use \Inc\Base\ControlerCrefs;
 use \Inc\Api\SettingsApiCrefs;

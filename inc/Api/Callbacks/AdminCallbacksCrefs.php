@@ -8,8 +8,8 @@ use \Inc\Base\ControlerCrefs;
 
 class AdminCallbacksCrefs extends ControlerCrefs
 {
-    // Helper method for generating HTML element for toggle button
     
+    // Helper method for generating HTML element for toggle button
     public function generateToggle($id, $checked) {
         
         $is_off = (!empty($checked)) ? '' : 'off';
@@ -240,7 +240,7 @@ class AdminCallbacksCrefs extends ControlerCrefs
         
         $this->generateInputBox(array('minimum_comments'), 'crefs_get_dofollow', '', 'Set number of comments the commentator should has', 'small-text');
         
-        $this->generateInputBox(array('message'), 'crefs_get_dofollow', 'Custom Message','<strong>Replace the text inside the brackets</strong> with your custom message. The message will display under CommentRefs\' list when needed.', 'regular-text');
+        $this->generateInputBox(array('message'), 'crefs_get_dofollow', 'Custom Message','<strong>Replace the text inside the brackets</strong> with your custom message. The message will display under CommentRefs\' list when needed.', 'regular-text code');
         
     }
     

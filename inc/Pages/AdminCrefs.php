@@ -15,13 +15,18 @@ class AdminCrefs extends ControlerCrefs
 	
 	public function __construct(){
         
-		$this->callbacks = new AdminCallbacksCrefs();
+        //Instanciate Setting API
 		$this->settings = new SettingsApiCrefs();
+        
+        //Instanciate Admin callback
+		$this->callbacks = new AdminCallbacksCrefs();
         
 	}
 	
+    // Register all services
 	public function register(){
         
+        // Set admin page argument properties for register Admin pages
 		$pages = array(
             
 			array(
@@ -37,13 +42,48 @@ class AdminCrefs extends ControlerCrefs
             
 		);
         
+        /**
+         * Set arguments properties for register setting options
+         *
+         * Param
+         * Return void
+         *
+         */
+        
         $this->setSettings();
+        
+        /**
+         * Set setting sections argurment for register setting sections
+         *
+         * Param
+         * Return void
+         *
+         */
+        
         $this->setSections();
+        
+        /**
+         * Set setting fields arguments properties for adding setting fields
+         *
+         * Param
+         * Return void
+         *
+         */
+        
         $this->setFields();
+        
+        /**
+         * Register CommentRefs admin page with set argument properties
+         *
+         * Param    Array   $pages  Array pages properties
+         * Return   void
+         */
+        
 		$this->settings->AddPages($pages)->register();
 
 	}
     
+    //set argument properties for registering setting options 
     public function setSettings() {
         
         $args = array(
@@ -52,7 +92,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_post_type',
-                'callback'      => 'sanitize_text_fields',
+                'callback'      => array($this->callbacks, 'sanitizeSettingsOptions'),
                 
             ),
             
@@ -60,7 +100,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_get_ten_posts',
-                'callback'      => 'sanitize_text_fields',
+                'callback'      => array($this->callbacks, 'sanitizeSettingsOptions'),
                 
             ),
             
@@ -68,7 +108,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_get_dofollow',
-                'callback'      => 'sanitize_text_fields',
+                'callback'      => array($this->callbacks, 'sanitizeSettingsOptions'),
                 
             ),
             
@@ -76,14 +116,14 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_sm_integration',
-                'callback'      => 'sanitize_text_fields',
+                'callback'      => array($this->callbacks, 'sanitizeSettingsOptions'),
                 
             ),
             
             array(
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_comment_redirect',
-                'callback'      => 'sanitize_text_fields',
+                'callback'      => array($this->callbacks, 'sanitizeSettingsOptions'),
                 
             ),
             
@@ -91,7 +131,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_prevent_lq',
-                'callback'      => 'sanitize_text_fields',
+                'callback'      => array($this->callbacks, 'sanitizeSettingsOptions'),
                 
             ),
             
@@ -99,7 +139,7 @@ class AdminCrefs extends ControlerCrefs
                 
                 'option_group'  => 'comment_refs_option_group',
                 'option_name'   => 'crefs_miscellaneous',
-                'callback'      => 'sanitize_text_fields',
+                'callback'      => array($this->callbacks, 'sanitizeSettingsOptions'),
                 
             ),
             
@@ -108,7 +148,9 @@ class AdminCrefs extends ControlerCrefs
         $this->settings->setSettings($args);
         
     }
-
+    
+    
+    //Set argument properties for register setting sections
     public function setSections() {
         
         $args = array(
@@ -181,6 +223,7 @@ class AdminCrefs extends ControlerCrefs
         
     }
     
+    //Set argument properties for adding setting fields
     public function setFields() {
         
         $args = array(

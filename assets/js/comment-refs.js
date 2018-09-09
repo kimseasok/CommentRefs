@@ -183,7 +183,7 @@
     
     function displayErrors(errs) {
         
-        var error_element, append_target;
+        var error_element, btn_close, append_target;
         
         btn_submit.addEventListener('click', preventEventPropagation, false);
         
@@ -209,10 +209,42 @@
             
             append_target = document.getElementById('crefs-content-wrap');
             append_target.innerHTML = '';
+            
             addEnableRecommentRefsCheckbox();
+            
+            btn_close = generateElements('span', ['id', 'btn-close-err']);
+            btn_close.innerText = 'X';
+            
+            error_element.append(btn_close);
+            
             append_target.append(error_element);
             
+            btn_close = document.getElementById('btn-close-err');
+            
+            if (btn_close !== null) {
+                
+                btn_close.addEventListener('click', function(e){
+                    
+                    var content_wrap;
+                    
+                    preventEventPropagation(e);
+                    
+                    btn_submit.removeEventListener('click', preventEventPropagation, false);
+                    
+                    content_wrap = document.getElementById('crefs-content-wrap');
+                    
+                    if (content_wrap !== null) {
+                        
+                        content_wrap.removeChild(e.currentTarget.parentNode);
+                        
+                    }
+                    
+                }, false);
+                
+            }
+            
         }
+        
     }
     
     /*
@@ -306,9 +338,6 @@
      */
     
     function isUserCanGetTenPosts() {
-        
-        var use_can_get_ten_post = false;
-        
         
         if (get_ten !== null) {
             
@@ -594,9 +623,8 @@
                 
                 clearInterval(timmer);
                 
-                if (get_ten.shared_the_post === 'on') {
+                if (get_ten.shared_the_post === 'on' || isUserCanGetTenPosts() === true) {
                     
-                    get_ten.shared_post = true;
                     displayPosts(crefs_posts, true);
                     
                 } else {
@@ -764,7 +792,7 @@
      * Setup Ajax request
      */
     
-	function setupAjaxRequest(url, errorHandler, responseHandler, asyn = true) {
+	function setupAjaxRequest(url, errorHandler, responseHandler) {
         
 		var xhr, checkbox, boolean_return;
         checkbox = document.getElementById('enable_commentrefs');
@@ -777,10 +805,10 @@
         
         xhr = new XMLHttpRequest();
         
-        xhr.returnValue
+        //xhr.returnValue;
 		xhr.onreadystatechange = responseHandler;
         xhr.onerror = errorHandler;
-		xhr.open('GET', url, asyn);
+		xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json, application/commentrefs; charset=UTF-8');
 		xhr.send();
         
@@ -924,5 +952,5 @@
         }, false);
         
     }
-    
+
 }());

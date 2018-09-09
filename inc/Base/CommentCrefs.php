@@ -146,31 +146,6 @@ class CommentCrefs extends ControlerCrefs
      *
      * @since 1.0.0
      *
-     * Param string $message string message.
-     * Return string $message
-     *
-     */
-    
-    public function getMessage($message) {
-        
-        $re = '/\{.*\}/';
-        $str = $message;
-        
-        preg_match($re, $str, $matches, PREG_OFFSET_CAPTURE, 0);
-        
-        $message = substr($matches[0][0], 0, -1);
-        $message = substr($message, 1);
-        
-        return $message;
-        
-    }
-    
-    /**
-     * Helper method for generate custom message
-     * Get replacable message and return string format
-     *
-     * @since 1.0.0
-     *
      * Param string $comment_id string comment ID.
      * Return boolean
      *
@@ -178,63 +153,84 @@ class CommentCrefs extends ControlerCrefs
     
     public function isUserCanGetDofollow ($comment_id) {
         
-        $get_do = get_option('crefs_get_dofollow');
+        $get_do = (get_option('crefs_get_dofollow')) ? get_option('crefs_get_dofollow') : '';
         
-        $comment_author_email = get_comment_author_email($comment_id);
+        $comment_author_email = (get_comment_author_email($comment_id)) ? get_comment_author_email($comment_id) : '';
         
-        $user = get_user_by('email', $comment_author_email);
+        $user = (get_user_by('email', $comment_author_email)) ? get_user_by('email', $comment_author_email) : '';
         
-        if (user_can($user, 'editable_roles')) {
+        // return true is Admin
+        if (!empty($user) && user_can($user, 'editable_roles')) {
             
             return true;
             
-        } else if(isset($get_do['everyone']) && $get_do['everyone'] == 'on') {
+        }
+        
+        //return true if everyone is set to on
+        if(isset($get_do['everyone']) && $get_do['everyone'] == 'on') {
             
             return true;
             
-        } else if (isset($get_do['registered_the_site']) && $get_do['registered_the_site'] == 'on') {
+        }
+        
+        //check if register is turned on
+        if (isset($get_do['registered_the_site']) && $get_do['registered_the_site'] == 'on') {
             
-            if ($user) {
+            //if user logged in and user has id return true
+            if (is_user_logged_in() && $user) {
                 
                 return true;
                 
             }
             
-        } else if (isset($get_do['post_author']) && $get_do['post_author'] == 'on') {
+        }
+        
+        // Check if post author can get dofollow
+        if (isset($get_do['post_author']) && $get_do['post_author'] == 'on') {
             
-            $author_id = get_post_field('post_author', get_the_ID());
+            //Get author id of current post
+            $author_id = (get_post_field('post_author', get_the_ID())) ? get_post_field('post_author', get_the_ID()) : '';
             
-            $commentator = get_user_by('email', $comment_author_email);
+            //get user object by comment email
+            $commentator = (get_user_by('email', $comment_author_email)) ? get_user_by('email', $comment_author_email) : '';
             
-            $commentator_id = $commentator->ID;
+            $commentator_id = ($commentator->ID) ? $commentator->ID : '';
             
-            if($author_id == $commentator_id) {
+            //return true if commentator user_id = author user_id
+            if((!empty($author_id) || !empty($author_id)) && $author_id == $commentator_id) {
                 
                 return true;
                 
             }
             
-        } else if (isset($get_do['has_previous_comments']) && $get_do['has_previous_comments'] == 'on') {
+        }
+        
+        // check if has previous comment is turn on
+        if (isset($get_do['has_previous_comments']) && $get_do['has_previous_comments'] == 'on') {
             
-            $minimum_comments = $get_do['minimum_comments'];
+            $minimum_comments = ($get_do['minimum_comments']) ? $get_do['minimum_comments'] : '';
             
             $comment_count = get_comments(array(
                 'author_email'  =>  $comment_author_email,
                 'count'         => true,
             ));
             
-            if (!empty($minimum_comments) && $minimum_comments <= $comment_count) {
+            if ((!empty($minimum_comments) || !empty($comment_count)) && $minimum_comments <= $comment_count) {
                 
                 return true;
                 
             }
             
-        } else if (isset($get_do['shared_the_post']) && $get_do['shared_the_post'] == 'on') {
+        }
+        
+        //check if share post is turned on
+        if (isset($get_do['shared_the_post']) && $get_do['shared_the_post'] == 'on') {
             
-            $crefs_metas = get_comment_meta($comment_id, 'comment_refs_metas');
+            $crefs_metas = (get_comment_meta($comment_id, 'comment_refs_metas')) ? get_comment_meta($comment_id, 'comment_refs_metas') : '';
             
-            $shared_platform = (is_array($crefs_metas) && isset($crefs_metas[0]['shared_on'])) ? $crefs_metas[0]['shared_on'] : null;
+            $shared_platform = (is_array($crefs_metas) && isset($crefs_metas[0]['shared_on'])) ? $crefs_metas[0]['shared_on'] : '';
             
+            //return true if user shared the post
             if(is_array($shared_platform) && !empty($shared_platform)) {
                 
                 return true;
@@ -250,9 +246,9 @@ class CommentCrefs extends ControlerCrefs
         
         $require_wp_version = '3.5';
         
-        $current_wp_version = get_bloginfo('version');
+        $current_wp_version = (get_bloginfo('version')) ? get_bloginfo('version') : '';
         
-        if(version_compare($current_wp_version, $require_wp_version) < 0) {
+        if(!empty($current_wp_version) && version_compare($current_wp_version, $require_wp_version) < 0) {
             
             // require plugin.php if deactivate_plugin not exists.
             if (!function_exists('deactivate_plugins')) {
@@ -296,13 +292,9 @@ class CommentCrefs extends ControlerCrefs
     public function displayUnsupportedWordPressVersion() {
         
     ?>
-
         <div class="error notice-error is-dismissible">
-            
             <p><?php _e( 'CommentRefs plugin requires at least WordPress version 3.5', 'commentrefs' ); ?></p>
-            
         </div>
-
     <?php
         
     }
@@ -311,13 +303,9 @@ class CommentCrefs extends ControlerCrefs
     public function displayCommentLuvReadyInstalled() {
         
     ?>
-
         <div class="error notice-error is-dismissible">
-            
             <p><?php _e( 'To avaid conflig, you should disable CommentLuv plugin before activate CommentRefs', 'commentrefs' ); ?></p>
-            
         </div>
-
     <?php
         
     }
@@ -326,14 +314,46 @@ class CommentCrefs extends ControlerCrefs
     public function addCommentMetas($comment_ID, $comment_approved) {        
         
         if (!isset($_POST['enable_commentrefs']) || !isset($_POST['comment_refs_metas'])) {
-            
             return;
             
         }
         
-        $crefs_wpnone = (isset($_POST['comment_refs_wponce'])) ? sanitize_text_fields($_POST['comment_refs_wponce']) : '';
+        $crefs_wpnone = (isset($_POST['comment_refs_wponce'])) ? sanitize_text_field($_POST['comment_refs_wponce']) : '';
+        $crefs_metas = (isset($_POST['comment_refs_metas'])) ? $_POST['comment_refs_metas'] : '';
         
-        $crefs_metas = (isset($_POST['comment_refs_metas'])) ? sanitize_meta('comment_refs_metas', $_POST['comment_refs_metas'], 'comment') : '';
+        // validate and sanitize CommentRefs data
+        if(is_array($crefs_metas) && !empty($crefs_metas)) {
+            
+            foreach($crefs_metas as $k => $v){
+                
+                switch ($k) {
+                    
+                    case 'title':
+                        $crefs_metas["{$k}"] = sanitize_text_field($v);
+                        break;
+                        
+                    case 'url':
+                        $crefs_metas["{$k}"] = (wp_http_validate_url($v)) ? esc_url_raw($v) : '';
+                        break;
+                        
+                    case 'shared_on':
+                        
+                        if(is_array($crefs_metas["{$k}"])) {
+                            
+                            $crefs_metas["{$k}"] = array_map('sanitize_text_field', $crefs_metas["{$k}"]);
+                            
+                        } else {
+                            
+                            $crefs_metas["{$k}"] = sanitize_text_field($v);
+                        }
+                        
+                        break;
+                        
+                }
+                
+            }
+            
+        }
         
         // Add CommentRefs meta data if verify_nonce is true and comment is not spam.
         if(wp_verify_nonce($crefs_wpnone, 'CommentRefs') && $comment_approved !== 'spam') {
@@ -341,6 +361,7 @@ class CommentCrefs extends ControlerCrefs
             $added_comment = add_comment_meta($comment_ID, 'comment_refs_metas', $crefs_metas);
 
         }
+        
 
     }
     
@@ -383,14 +404,18 @@ class CommentCrefs extends ControlerCrefs
                     
                     $redirect_to = absint($comment_redirect['redirect_to']);
                     
-                    $location = esc_attr(get_page_link($redirect_to));
+                    $redirect_page = (get_page_link($redirect_to)) ? get_page_link($redirect_to) : '';
+                     
+                    $location = (empty($redirect_page)) ? $location : $redirect_page;
                     
                 }
                 
                 //Check if custom URL is set, override redirect location.
                 if ($comment_redirect['enabled'] == 'on' && !empty($comment_redirect['custom_url'])) {
                     
-                    $location = esc_attr($comment_redirect['custom_url']);
+                    $custom_url = (wp_http_validate_url($comment_redirect['custom_url'])) ? esc_url_raw($custom_url) : '';
+                    
+                    $location = (empty($custom_url)) ? $location : $custom_url;
                 }
                 
             }
@@ -406,26 +431,37 @@ class CommentCrefs extends ControlerCrefs
         //Make comments object is not empty
         if (is_array($comments) && !empty($comments)) {
             
-            //Get replacable message from CommentRefs setting
-            $message = (get_option('crefs_post_type')) ? get_option('crefs_post_type') : '';
-            $message = (is_array($message) && isset($message['message'])) ? $this->getMessage($message['message']) : '';
+
             
             //Loop in comments object and generate HTML template for CommentRefs
             foreach($comments as $comment){
                 
                 //Get CommentRefs metas data base on Comment id
                 $crefs_metas = (get_comment_meta($comment->comment_ID, 'comment_refs_metas')) ? get_comment_meta($comment->comment_ID, 'comment_refs_metas') : '';
-                $crefs_metas = (is_array($crefs_metas[0]) && !empty($crefs_metas[0])) ? $crefs_metas[0] : '';
-                
-                //Generate nofollow link related if the commentator cannot get dofollow
-                $link_rel = ($this->isUserCanGetDofollow($comment->comment_ID)) ? '' : 'rel="nofollow"';
+                $crefs_metas = (is_array($crefs_metas) && isset($crefs_metas[0])) ? $crefs_metas[0] : '';
                 
                 //Generate HTML template for CommentRefs and append to comment data
-                if(!empty($crefs_metas)) {   
+                if(!empty($crefs_metas)) {
                     
-                    $link = '<p id="crefs-comment-' .esc_attr($comment->comment_ID) . '" class="crefs-link-wrap"><span class="crefs-message">' .esc_html($comment->comment_author) .' ' .esc_html($message) .'</span><span class="crefs-meta-content"><a href="' .esc_url($crefs_metas['url']) .'" title="' .esc_attr($crefs_metas['title']) . '" ' .$link_rel .' data-comment-id="comment-' . $comment->comment_ID . '">' .esc_html(strtolower($crefs_metas['title'])) . '</a></span></p>';
+                    //Get replacable message from CommentRefs setting
+                    $message = (get_option('crefs_post_type')) ? get_option('crefs_post_type') : '';
+                    $message = (is_array($message) && isset($message['message'])) ? $message['message'] : '';
                     
-                    $comment->comment_content .= trim($link);
+                    //Generate nofollow link related if the commentator cannot get dofollow
+                    $link_rel = ($this->isUserCanGetDofollow($comment->comment_ID)) ? '' : 'rel="nofollow"';
+                    
+                    $crefs_title = (isset($crefs_metas['title']) && !empty($crefs_metas['title'])) ? esc_html($crefs_metas['title']) : '';
+                    $crefs_url = (isset($crefs_metas['url']) && !empty($crefs_metas['url'])) ? esc_url_raw($crefs_metas['url']) : '';
+                    
+                    //add CommentRefs linked underneath comment content if title and url is not empty
+                    if (!empty($crefs_title) && !empty($crefs_url)) {
+                        
+                        $link = '<p id="crefs-comment-' .esc_attr($comment->comment_ID) . '" class="crefs-link-wrap"><span class="crefs-message">' .esc_html($comment->comment_author) .' ' .esc_html($message) .'</span><span class="crefs-meta-content"><a href="' .$crefs_url .'" title="' .$crefs_title . '" ' .$link_rel .' data-comment-id="comment-' . $comment->comment_ID . '">' .strtolower($crefs_title) . '</a></span></p>';
+
+                        $comment->comment_content .= wp_kses_post($link);
+                        
+                    }
+                    
                 }
                 
             }
@@ -437,14 +473,24 @@ class CommentCrefs extends ControlerCrefs
                 
                 //Get CommentRefs meta data base on the comment id
                 $crefs_metas = (get_comment_meta(get_comment_ID(), 'comment_refs_metas')) ? get_comment_meta(get_comment_ID(), 'comment_refs_metas') : '';
-                $crefs_metas = (is_array($crefs_metas[0]) && !empty($crefs_metas[0])) ? $crefs_metas[0] : '';
+                $crefs_metas = (is_array($crefs_metas) && isset($crefs_metas[0])) ? $crefs_metas[0] : '';
                 
                 // Generate HTML template and append to comment data if any
                 if(!empty($crefs_metas)) { 
                     
-                    $link = '<p id="crefs-comment-' .esc_attr(get_comment_ID()) .'" class="crefs-link-wrap"><span class="crefs-mata-title">' .esc_html(get_comment_author()) .esc_html($message) .' </span><span class="crefs-meta-content"><a id="comment-link-id-' .esc_attr(get_comment_ID()) . '" href="' .esc_url($crefs_metas['url']) .'" title="' .esc_attr($crefs_metas['title']) . '">' .esc_html($crefs_metas['title']) . '</a><img id="comment-loading-id-' .esc_attr(get_comment_ID()) .'" src="' .esc_url($this->plugin_url .'/assets/images/loading-bar-64px.gif') . '"></span></p>';
+                    //Get replacable message from CommentRefs setting
+                    $message = (get_option('crefs_post_type')) ? get_option('crefs_post_type') : '';
+                    $message = (is_array($message) && isset($message['message'])) ? $message['message'] : '';
+                    
+                    //Generate nofollow link related if the commentator cannot get dofollow
+                    $link_rel = ($this->isUserCanGetDofollow(get_comment_ID())) ? '' : 'rel="nofollow"';
+                    
+                    $crefs_title = (isset($crefs_metas['title']) && !empty($crefs_metas['title'])) ? esc_html($crefs_metas['title']) : '';
+                    $crefs_url = (isset($crefs_metas['url']) && !empty($crefs_metas['url'])) ? esc_url_raw($crefs_metas['url']) : '';
+                    
+                    $link = '<p id="crefs-comment-' .esc_attr(get_comment_ID()) .'" class="crefs-link-wrap"><span class="crefs-mata-title">' .esc_html(get_comment_author()) .esc_html($message) .' </span><span class="crefs-meta-content"><a id="comment-link-id-' .esc_attr(get_comment_ID()) . '" href="' .$crefs_url .'" title="' .esc_attr($crefs_title) . '">' .$crefs_title . '</a><img id="comment-loading-id-' .esc_attr(get_comment_ID()) .'" src="' .esc_url($this->plugin_url .'/assets/images/loading-bar-64px.gif') . '"></span></p>';
 
-                    $comments .= trim($link);
+                    $comments .= wp_kses_post($link);
                     
                 }
                 
@@ -481,12 +527,12 @@ class CommentCrefs extends ControlerCrefs
     //Handle remove comment link Ajax when user click on Remove CommentRefs action link
     public function removeCommentRefsMetasAjax () {
         
-        $nonce = (isset($_POST['nonce'])) ? sanitize_text_fields($_POST['nonce']) : '';
+        $nonce = (isset($_POST['nonce'])) ? sanitize_text_field($_POST['nonce']) : '';
         
-        $comment_id = (isset($_POST['comment_id'])) ? sanitize_text_fields($_POST['comment_id']) : '';
+        $comment_id = (isset($_POST['comment_id'])) ? absint($_POST['comment_id']) : '';
         
         // Make sure verify_nonce is true
-        if (wp_verify_nonce($nonce, 'RemoveCommentRefs' .$comment_id) && !empty($comment_id)) {
+        if (!empty($comment_id) && wp_verify_nonce($nonce, 'RemoveCommentRefs' .$comment_id)) {
             
             $deleted = delete_comment_meta($comment_id, 'comment_refs_metas');
             
@@ -522,15 +568,15 @@ class CommentCrefs extends ControlerCrefs
     //Handle ajax get comment count action.
     public function handleGetCommentCount() {
         
-        $author_email = (isset($_GET['author_email'])) ? sanitize_email($_GET['author_email']) : '';
-        
         $wp_nonce = (isset($_GET['wp_nonce'])) ? sanitize_text_fields($_GET['wp_nonce']) : '';
+        
+        $author_email = (isset($_GET['author_email'])) ? sanitize_email($_GET['author_email']) : '';
         
         //Make sure comment author email and wp_nonce is not empty.
         if (!empty($author_email) && !empty($wp_nonce)) {
             
             //check verify_nonce before processing query
-            if (wp_verify_nonce($wp_nonce, 'CommentRefs')) {
+            if (wp_verify_nonce($wp_nonce, 'CommentRefs') && is_email($author_email)) {
                 
                 $args = array (
                     'author_email' => $author_email,
@@ -578,7 +624,7 @@ class CommentCrefs extends ControlerCrefs
             preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
             
             // call wp_die() when found link in comment
-            if (!empty($matches)) {
+            if (is_array($matches) && !empty($matches)) {
 
                 wp_die(__('The comment did not pass quality filtering'));
 
@@ -589,7 +635,7 @@ class CommentCrefs extends ControlerCrefs
         //Check if prevent short comment is turned on.
         if ($prevent_short_comment == 'on') {
             
-            $comment_count = str_word_count($comment);
+            $comment_count = (str_word_count($comment)) ? str_word_count($comment) : 0;
             
             if(!empty($options['minimum_length'])) {
                 
@@ -613,34 +659,39 @@ class CommentCrefs extends ControlerCrefs
     //Import CommentLuv metas data to CommentRefs plugin if setting option is set to on
     public function importCommentLuvData($old_value, $value, $option) {
         
-        if ((isset($value['import_data_from_commentluv']) && $value['import_data_from_commentluv'] == 'on') && (!isset($value['imported']) || $value['imported'] != true)) {
+        if (!isset($value['import_data_from_commentluv']) && $value['import_data_from_commentluv'] !== 'on') {
+            return;
+        }
+        
+        if (!isset($value['imported']) || $value['imported'] != true) {
             
-            $comments = get_comments(array('meta_key' => 'cl_data'));
-
-            if (!empty($comments)) {
-
+            $comments = (get_comments(array('meta_key' => 'cl_data'))) ? get_comments(array('meta_key' => 'cl_data')) : '';
+            
+            if(!empty($comments)) {
+                
                 foreach ($comments as $comment) {
 
                     $commentluv_data = (get_comment_meta($comment->comment_ID, 'cl_data')) ? get_comment_meta($comment->comment_ID, 'cl_data') : '';
                     
                     if (is_array($commentluv_data) && !empty($commentluv_data)) {
                         
-                        $commentrefs_data['title']  = isset($commentluv_data[0]['cl_post_title']) ? $commentluv_data[0]['cl_post_title'] : '';
-                        $commentrefs_data['url']    = ($commentluv_data[0]['cl_post_url']) ? $commentluv_data[0]['cl_post_url'] : '';
-                        
-                        $commentrefs_data = sanitize_meta('comment_refs_metas', $commentrefs_data, 'comment');
+                        $commentrefs_data['title']  = isset($commentluv_data[0]['cl_post_title']) ? sanitize_text_field($commentluv_data[0]['cl_post_title']) : '';
+                        $commentrefs_data['url']    = ($commentluv_data[0]['cl_post_url']) ? esc_url_raw($commentluv_data[0]['cl_post_url']) : '';
                         
                         $commentrefs_meta = add_comment_meta($comment->comment_ID, 'comment_refs_metas', $commentrefs_data, true);
                         
                     }
 
                 }
-
-                $value['imported'] = true;
-                $value = sanitize_option($option, $value);
                 
-                update_option($option, $value);
-
+                //Mark as imported
+                if (is_array($value) && !isset($value['imported'])) {
+                    
+                    $value['imported'] = true;
+                    update_option($option, $value);
+                    
+                }
+                
             }
             
         }

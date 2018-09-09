@@ -19,11 +19,13 @@
             
             btn.classList.remove('off');
             checkbox.checked = true;
+            checkbox.setAttribute('checked', '');
             
         } else {
             
             btn.classList.add('off');
             checkbox.checked = false;
+            checkbox.removeAttribute('checked');
             
         }
         

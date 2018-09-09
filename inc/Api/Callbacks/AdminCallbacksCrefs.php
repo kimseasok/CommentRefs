@@ -136,6 +136,23 @@ class AdminCallbacksCrefs extends ControlerCrefs
             
             $saved_option = (isset($has_options["{$option}"])) ? $has_options[$option] : '';
             
+            if (!empty($saved_option) && !is_numeric($saved_option)) {
+                switch($field) {
+                        
+                    case 'crefs_post_type':
+                        $saved_option = '#Author Name#{' .$saved_option .'} #post title#';
+                        break;
+                        
+                    case 'crefs_get_ten_posts':
+                        $saved_option = '{' .$saved_option .'} can get 10 posts in the list';
+                        break;
+                        
+                    case 'crefs_get_dofollow':
+                        $saved_option = '{' .$saved_option .'} can get dofollow attribute';
+                }
+                
+            }
+            
 ?>
 
             <label for="<?php echo $id ?>" class="block-options">
